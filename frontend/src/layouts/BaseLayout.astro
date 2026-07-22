@@ -1,0 +1,26 @@
+---
+// src/layouts/BaseLayout.astro
+import Navbar from '../components/Navbar.astro';
+
+// Define the expected props type
+interface Props {
+  title?: string;
+}
+
+// Explicitly type Astro.props as Props
+const { title = "My Site" }: Props = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col font-sans">
+    <Navbar title={title} />
+    <main class="flex-grow p-6">
+      <slot />
+      <!-- Page content will be injected here -->
+    </main>
+  </body>
+</html>

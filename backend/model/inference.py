@@ -6,8 +6,8 @@ import os
 import torch
 from tokenizers import Tokenizer
 
-# Add src to path
-root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# Add src to path - Updated to match actual project structure
+root_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(root_path)
 
 from model.model import GPT
@@ -21,6 +21,9 @@ def load_trained_model():
         os.path.join(root_path, '..', 'data', 'processed', 'models', 'polish_small_model.pt')
     ]
     
+    print(f"Looking for model in: {os.path.join(root_path, '..', 'data', 'processed', 'models')}")
+    print(f"Available files: {os.listdir(os.path.join(root_path, '..', 'data', 'processed', 'models')) if os.path.exists(os.path.join(root_path, '..', 'data', 'processed', 'models')) else 'Directory does not exist'}")
+    
     valid_model_path = None
     for model_path in model_paths:
         if os.path.exists(model_path):
@@ -29,7 +32,6 @@ def load_trained_model():
     
     if valid_model_path is None:
         print(f"No trained model found in data/processed/models/")
-        print("Available files:", os.listdir(os.path.join(root_path, '..', 'data', 'processed', 'models')) if os.path.exists(os.path.join(root_path, '..', 'data', 'processed', 'models')) else "Directory does not exist")
         print("Please train a model first by running: python main.py --train_model")
         return None, None
     
@@ -59,11 +61,14 @@ def load_trained_model():
         model = GPT(config=config)
         model.load_state_dict(checkpoint['model_state_dict'])
         
-        # Load the CORRECT tokenizer (full vocabulary) - UPDATED PATH
+        # Load the CORRECT tokenizer (full vocabulary) - FIXED PATH
         tokenizer_path = os.path.join(root_path, '..', 'data', 'processed', 'models', 'tokenizers', 'polish_bpe_32k.json')
         
+        print(f"Looking for tokenizer at: {tokenizer_path}")
+        print(f"Tokenizer exists: {os.path.exists(tokenizer_path)}")
+        
         if not os.path.exists(tokenizer_path):
-            raise FileNotFoundError(f"Tokenizer not found at {tokenizer_path}")
+            raise FileNotFoundError(f"Tokenizer not found at {tokenizer_path}\nPlease run: python main.py --train_tokenizer")
         
         tokenizer = Tokenizer.from_file(tokenizer_path)
         
@@ -77,7 +82,7 @@ def load_trained_model():
         
     except Exception as e:
         print(f"Failed to load model: {e}")
-        print("Try training a new model: python src/train/train.py")
+        print("Try training a new model: python main.py --train_model")
         return None, None
 
 

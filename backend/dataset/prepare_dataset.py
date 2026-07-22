@@ -9,7 +9,7 @@ class PolishWikipediaDatasetPreparer:
         self.local_dir = local_dir
         self.shard_size = shard_size
         self.max_tokens = max_tokens
-        self.DATA_CACHE_DIR = os.path.join(script_dir, "../../data/processed/polish_sample")
+        self.DATA_CACHE_DIR = os.path.join(script_dir, "polish_sample_dataset")
         os.makedirs(self.DATA_CACHE_DIR, exist_ok=True)
         
         # Use provided tokenizer path or default

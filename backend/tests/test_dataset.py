@@ -1,8 +1,8 @@
 import os
 import tempfile
 import shutil
-from src.dataset.prepare_dataset import PolishWikipediaDatasetPreparer
-from src.tokenizer.train_tokenizer import train_tokenizer
+from dataset.prepare_dataset import PolishWikipediaDatasetPreparer
+from tokenizer.train_tokenizer import train_tokenizer
 
 def test_dataset_preparation():
     # Create a temporary corpus

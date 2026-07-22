@@ -1,0 +1,14 @@
+---
+import ChatWindow from './ChatWindow.jsx';
+import type { Message } from '../types';
+
+interface Props {
+  messages?: Message[];
+}
+
+const { messages = [] }: Props = Astro.props;
+---
+
+<ChatWindow client:load initialMessages={messages} />
+
+

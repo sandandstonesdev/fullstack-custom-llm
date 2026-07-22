@@ -35,7 +35,7 @@ class SmallLLMDataLoader(torch.utils.data.Dataset):
         
         # Use small corpus directory if specified
         script_dir = os.path.dirname(__file__)
-        data_root = os.path.join(script_dir, "..", "data", "processed", "polish_sample")
+        data_root = os.path.join(script_dir, "processed", "polish_sample")
         
         # Get the shard filenames
         shard_filenames = os.listdir(data_root)

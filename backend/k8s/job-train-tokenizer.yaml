@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: train-tokenizer
+  namespace: polish-llm
+spec:
+  template:
+    spec:
+      containers:
+      - name: train-tokenizer
+        image: polish-llm-backend  # Replace with your image name
+        command: ["python", "main.py", "--train_tokenizer"]
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        securityContext:
+          runAsUser: 1000  # Non-root user
+          runAsGroup: 1000
+      restartPolicy: Never
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: polish-llm-data-claim

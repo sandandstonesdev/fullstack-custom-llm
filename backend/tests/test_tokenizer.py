@@ -1,7 +1,7 @@
 import os
 import tempfile
-from src.tokenizer.train_tokenizer import train_tokenizer
-from src.tokenizer.load_tokenizer import load_tokenizer
+from tokenizer.train_tokenizer import train_tokenizer
+from tokenizer.load_tokenizer import load_tokenizer
 
 def test_tokenizer_training():
     # Create a temporary corpus
@@ -30,7 +30,7 @@ def test_tokenizer_training():
         # Test tokenization
         output = tokenizer.encode("To jest test.")
         assert len(output.ids) > 0, "Tokenization failed."
-        print("✅ Tokenizer training and loading test passed.")
+        print("Tokenizer training and loading test passed.")
     finally:
         # Clean up
         os.unlink(temp_corpus_path)

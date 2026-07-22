@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "jsxImportSource": "react"
+  },
+  "include": [
+    "src/**/*",
+    "astro-components.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

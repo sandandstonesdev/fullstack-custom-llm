@@ -1,0 +1,13 @@
+---
+import Navbar from './Navbar.astro';
+
+interface Props {
+  title?: string;
+}
+
+const { title = "My Site" }: Props = Astro.props;
+---
+
+<header>
+  <Navbar title={title} />
+</header>

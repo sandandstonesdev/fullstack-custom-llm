@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About | Chatbot App">
+  <main class="container mx-auto p-4 max-w-4xl">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-3xl font-bold mb-4 text-gray-800">About Our Chatbot</h1>
+        
+        <div class="prose prose-lg text-gray-600">
+          <p class="mb-4">
+            Welcome to our AI-powered chatbot application! This chatbot is designed to assist you with various tasks and provide information on a wide range of topics.
+          </p>
+          
+          <h2 class="text-2xl font-semibold mt-6 mb-3">Features</h2>
+          <ul class="list-disc pl-6 mb-4">
+            <li>Real-time conversation with AI</li>
+            <li>Natural language understanding</li>
+            <li>Context-aware responses</li>
+            <li>Integration with WebSockets for real-time updates</li>
+          </ul>
+          
+          <h2 class="text-2xl font-semibold mt-6 mb-3">Technologies Used</h2>
+          <ul class="list-disc pl-6 mb-4">
+            <li>Astro for frontend framework</li>
+            <li>Tailwind CSS for styling</li>
+            <li>WebSockets for real-time communication</li>
+            <li>FastAPI for backend services</li>
+          </ul>
+          
+          <p class="mt-6">
+            This application is built with modern web technologies to provide a fast, responsive, and user-friendly experience.
+          </p>
+        </div>
+      </div>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Add any page-specific styles here */
+</style>
