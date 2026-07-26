@@ -30,7 +30,7 @@ npm run dev
 ### 4. Open Browser
 Visit: `http://localhost:3000`
 
-## Features
+### Features
 
 - Real-time chat with WebSocket
 - Polish language model integration
@@ -38,33 +38,33 @@ Visit: `http://localhost:3000`
 - Message storage in Valkey (Redis)
 - Responsive design with Tailwind CSS
 
-## Architecture
+### Architecture
 
 ```
 Frontend (React+Astro) → WebSocket → Backend (FastAPI) → Valkey (Redis)
 ```
 
-### Model Training & Inference
+## Model Training & Inference
 
-## Tokenizer Training
-# Input Corpus file 'polish_corpus.txt'
-# Tokenizer Output polish_bpe_32k.json
+### Tokenizer Training
+### Input Corpus file 'polish_corpus.txt'
+### Tokenizer Output polish_bpe_32k.json
 
 ```bash
 cd backend
 python main.py --train_tokenizer
 ```
 
-## Dataset Preparation
-# polish_wiki_val_000000.npy
-# polish_wiki_val_000000.npy
+### Dataset Preparation
+### polish_wiki_val_000000.npy
+### polish_wiki_val_000000.npy
 
 ```bash
 python main.py --prepare_dataset
 ```
 
-## Model Training
-# polish_small_model.pt
+### Model Training
+### polish_small_model.pt
 
 ```bash
 python main.py --train_model
@@ -75,7 +75,7 @@ python main.py --train_model
 python main.py --inference "Your prompt here"
 ```
 
-## Data Structure
+### Data Structure
 
 ```
 data/
@@ -173,7 +173,7 @@ tofu apply -f infra/
 2. **Tokenizer Errors**: Verify UTF-8 encoding
 3. **Slow Training**: Use GPU acceleration
 
-### Chat Application
+## Chat Application
 1. **WebSocket Failed**: Verify backend running
 2. **No Response**: Check backend logs
 3. **Redis Errors**: Ensure Redis is running
