@@ -47,8 +47,9 @@ Frontend (React+Astro) → WebSocket → Backend (FastAPI) → Valkey (Redis)
 ## Model Training & Inference
 
 ### Tokenizer Training
-### Input Corpus file 'polish_corpus.txt'
-### Tokenizer Output polish_bpe_32k.json
+Input Corpus file 'polish_corpus.txt'
+
+Tokenizer Output polish_bpe_32k.json
 
 ```bash
 cd backend
@@ -56,15 +57,14 @@ python main.py --train_tokenizer
 ```
 
 ### Dataset Preparation
-### polish_wiki_val_000000.npy
-### polish_wiki_val_000000.npy
+polish_wiki_val_000000.npy
 
 ```bash
 python main.py --prepare_dataset
 ```
 
 ### Model Training
-### polish_small_model.pt
+polish_small_model.pt
 
 ```bash
 python main.py --train_model
@@ -156,15 +156,21 @@ docker run -p 8000:8000 polish-llm-backend:latest
 
 ### Kubernetes (TODO)
 ```bash
-kubectl apply -f frontend/kubernetes/
-kubectl apply -f backend/kubernetes/
+kubectl apply -f frontend/k8s/
+kubectl apply -f backend/k8s/
 ```
 
 ### OpenTofu (TODO)
 ```bash
-tofu apply -f infra/
-```
+# Initialize OpenTofu
+tofu init
 
+# Review the execution plan
+tofu plan -f infra/main.tf
+
+# Apply the configuration
+tofu apply -f infra/main.tf
+```
 
 ## Troubleshooting
 
