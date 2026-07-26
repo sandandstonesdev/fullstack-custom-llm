@@ -10,20 +10,20 @@ redis-server
 
 ```Redis Server in Docker/Podman
 docker run --name valkey -p 6379:6379 -d valkey/valkey
-podman run --name valkey -p 6379:6379 -d valkey/valkey
 ```
 
 ### 2. Run Backend
 ```bash
 cd backend
-pip install -r requirements.txt
-python websocket_server.py
+uv pip install -r requirements.txt
+uv run python api/main.py
 ```
 
-### 3. Run Frontend
+### 3. Run Frontend (npm/pnpm)
 ```bash
 cd frontend
 npm install
+npm run build
 npm run dev
 ```
 
@@ -44,20 +44,28 @@ Visit: `http://localhost:3000`
 Frontend (React+Astro) → WebSocket → Backend (FastAPI) → Valkey (Redis)
 ```
 
-## Model Training & Inference
+### Model Training & Inference
 
-### Tokenizer Training
+## Tokenizer Training
+# Input Corpus file 'polish_corpus.txt'
+# Tokenizer Output polish_bpe_32k.json
+
 ```bash
 cd backend
 python main.py --train_tokenizer
 ```
 
-### Dataset Preparation
+## Dataset Preparation
+# polish_wiki_val_000000.npy
+# polish_wiki_val_000000.npy
+
 ```bash
 python main.py --prepare_dataset
 ```
 
-### Model Training
+## Model Training
+# polish_small_model.pt
+
 ```bash
 python main.py --train_model
 ```
@@ -107,12 +115,6 @@ Edit `backend/configs/tokenizer_config.json`:
 - Node.js 16+
 - npm or pnpm
 
-## Documentation
-
-- [Installation Guide](INSTALLATION.md)
-- [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [Troubleshooting](TROUBLESHOOTING.md)
-
 ## Development
 
 ### Running Tests
@@ -122,7 +124,7 @@ Edit `backend/configs/tokenizer_config.json`:
 cd backend
 pytest
 
-# Frontend tests
+# Frontend tests (TODO)
 cd frontend
 npm test
 ```
@@ -132,10 +134,10 @@ npm test
 ```bash
 # Frontend build
 cd frontend
-npm run build
+pnpm run build
 
 # Backend (use production server)
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.websocket_server:app
+uv run --host 0.0.0.0 --port 8000 api.main:app
 ```
 
 ## Deployment
@@ -152,19 +154,17 @@ docker run -p 3000:80 polish-llm-frontend:latest
 docker run -p 8000:8000 polish-llm-backend:latest
 ```
 
-### Kubernetes
-
+### Kubernetes (TODO)
 ```bash
 kubectl apply -f frontend/kubernetes/
 kubectl apply -f backend/kubernetes/
 ```
 
-### Docker Compose
-
+### OpenTofu (TODO)
 ```bash
-cd frontend
-docker-compose up --build
+tofu apply -f infra/
 ```
+
 
 ## Troubleshooting
 
