@@ -1,7 +1,7 @@
 import os
 import tempfile
 from tokenizer.train_tokenizer import train_tokenizer
-from tokenizer.load_tokenizer import load_tokenizer
+from tokenizers import Tokenizer
 
 def test_tokenizer_training():
     # Create a temporary corpus
@@ -24,7 +24,7 @@ def test_tokenizer_training():
         assert os.path.exists(temp_tokenizer_path), "Tokenizer file not created."
 
         # Test loading the tokenizer
-        tokenizer = load_tokenizer(temp_tokenizer_path)
+        tokenizer = Tokenizer.from_file(temp_tokenizer_path)
         assert tokenizer is not None, "Tokenizer failed to load."
 
         # Test tokenization

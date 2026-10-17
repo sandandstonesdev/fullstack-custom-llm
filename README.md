@@ -1,182 +1,79 @@
 # Polish LLM Chat Application
 
-A real-time chat application with a Polish language model, built with FastAPI backend and Astro+React frontend.
+Real-time chat with a small Polish language model: a FastAPI backend (WebSocket), an Astro+React frontend, and a local pipeline that turns public-domain literature into the served checkpoint.
 
-## Quick Start
+The corpus is a curated mythological-literary collection from [Wolne Lektury](https://wolnelektury.pl) (HF: [ArielUW/wolnelektury](https://huggingface.co/datasets/ArielUW/wolnelektury)): Greek and Roman antiquity (Homer, Ajschylos, Sofokles, Eurypides, Arystofanes, Wergiliusz, Owidiusz, Horacy), mythographic studies (Zipper, Brückner), Baltic legends (Stryjkowski, Mickiewicz, Baranauskas, Asnyk, Słowacki), Eastern accents (Leśmian, Kasprowicz, Żmichowska) and ancient Egypt (Prus's *Faraon*) — 38 books ≈ 5,700 samples ≈ 1.5M tokens. Small enough to train on a laptop CPU, themed enough to evaluate by eye.
 
-### 1. Start Redis
-```bash
-redis-server
-
-```Redis Server in Docker/Podman
-docker run --name valkey -p 6379:6379 -d valkey/valkey
-```
-
-### 2. Run Backend
-```bash
-cd backend
-uv pip install -r requirements.txt
-uv run python api/main.py
-```
-
-### 3. Run Frontend (npm/pnpm)
-```bash
-cd frontend
-npm install
-npm run build
-npm run dev
-```
-
-### 4. Open Browser
-Visit: `http://localhost:3000`
-
-### Features
-
-- Real-time chat with WebSocket
-- Polish language model integration
-- Clean chat history (🗑️ button)
-- Message storage in Valkey (Redis)
-- Responsive design with Tailwind CSS
-
-### Architecture
+## Architecture
 
 ```
-Frontend (React+Astro) → WebSocket → Backend (FastAPI) → Valkey (Redis)
+Frontend (Astro+React) ⇄ WebSocket /ws ⇄ Backend (FastAPI) ⇄ Valkey (event logging)
 ```
 
-## Model Training & Inference
+```
+corpus → tokenizer → shards → train ─► polish_small_model.pt (baked into the serve image)
+```
 
-### Tokenizer Training
-### Input Corpus file 'polish_corpus.txt'
-### Tokenizer Output polish_bpe_32k.json
+- Training runs locally only; serving is stateless — model + tokenizer are baked into the image.
+- The two sides meet in exactly one file: the checkpoint `data/processed/models/polish_small_model.pt`.
+- Corpus builder: `backend/corpus/` (the `MYTHOLOGY_BOOKS` list lives there); tokenizer/shards/model/train: `backend/tokenizer/`, `backend/dataset/`, `backend/model/`, `backend/train/`; serving: `backend/app/` + `frontend/`; all artifacts land in gitignored `data/`.
+
+## Commands (all from `backend/`)
+
+### 1. Install
 
 ```bash
-cd backend
-python main.py --train_tokenizer
+uv sync
 ```
 
-### Dataset Preparation
-### polish_wiki_val_000000.npy
-### polish_wiki_val_000000.npy
+### 2. Full pipeline — corpus → train → check (~15 min on a laptop CPU)
 
 ```bash
-python main.py --prepare_dataset
+uv run python -m cli --build_corpus_lektury                                # mythology corpus → data/raw/polish_corpus.txt
+uv run python -m cli --train_tokenizer --prepare_dataset --train_model     # tokenizer + shards + checkpoint
+uv run python -m cli --inference "Antygona"                                # quick generation check
 ```
 
-### Model Training
-### polish_small_model.pt
+### 3. Smoke test first (seconds instead of ~11 min of training)
 
 ```bash
-python main.py --train_model
+uv run python -m cli --build_corpus_lektury --corpus_samples 500          # small scratch corpus (overwrites the real one — rebuild it afterwards)
+uv run python -m cli --train_tokenizer --prepare_dataset
+uv run python -m cli --train_model --max_shards 2 --max_epochs 1 --model_path ../data/smoke_model.pt
+uv run python -m cli --inference "Antygona" --model_path ../data/smoke_model.pt
 ```
 
-### Inference
-```bash
-python main.py --inference "Your prompt here"
-```
-
-### Data Structure
-
-```
-data/
-├── raw/
-│   └── polish_corpus.txt      # Raw Polish text data
-└── processed/
-    ├── models/
-    │   ├── tokenizers/       # Trained tokenizers
-    │   │   └── polish_bpe_32k.json
-    │   └── polish_small_model.pt  # Trained model
-    └── shards/               # Tokenized dataset shards
-```
-
-## Configuration
-
-Edit `backend/configs/tokenizer_config.json`:
-
-```json
-{
-    "vocab_size": 32000,
-    "min_frequency": 2,
-    "special_tokens": ["<|endoftext|>", "[UNK]", "[PAD]"]
-}
-```
-
-## Requirements
-
-### Backend
-- Python 3.10+
-- PyTorch (with CUDA for GPU acceleration)
-- HuggingFace tokenizers
-- NumPy
-- FastAPI
-- Redis
-
-### Frontend
-- Node.js 16+
-- npm or pnpm
-
-## Development
-
-### Running Tests
+### 4. Serve
 
 ```bash
-# Backend tests
-cd backend
-pytest
-
-# Frontend tests (TODO)
-cd frontend
-npm test
+podman run -p 6379:6379 -d valkey/valkey        # optional — chat event logging only
+uv run python -m uvicorn app.main:app --reload  # backend :8000
+cd ../frontend && pnpm install && pnpm run dev  # frontend http://localhost:3000
 ```
 
-### Building for Production
+### 5. Deploy
 
 ```bash
-# Frontend build
-cd frontend
-pnpm run build
-
-# Backend (use production server)
-uv run --host 0.0.0.0 --port 8000 api.main:app
+podman compose -f deploy/compose/docker-compose.yml up --build   # backend :8000, frontend :3000, valkey :6379
 ```
 
-## Deployment
+### Corpus options (`--build_corpus_lektury`)
 
-### Docker
+| Flag | Effect |
+|---|---|
+| *(none)* | the curated mythology collection (default) |
+| `--lektury_list` | list the available books |
+| `--lektury_books "faraon,homer-iliada"` | a substring-matched subset instead (`faraon` → all three *Faraon* volumes) |
+| `--lektury_all` | all ~2400 books in the dataset (combine with `--corpus_samples`) |
+| `--corpus_samples N` | cap on the sample count (default: no cap) |
+
+Useful training knobs: `--max_shards` (smaller corpus), `--batch_size`, `--max_epochs`, `--learning_rate`, `--patience`. Serving env knobs: `MODEL_PATH`, `VALKEY_URL`, `CORS_ORIGINS`, `API_HOST`/`API_PORT`, `GEN_MAX_TOKENS`, `GEN_TEMPERATURE`, `GEN_REPETITION_PENALTY`.
+
+### Testing
 
 ```bash
-# Build images
-docker build -t polish-llm-frontend:latest frontend/
-docker build -t polish-llm-backend:latest backend/
-
-# Run containers
-docker run -p 3000:80 polish-llm-frontend:latest
-docker run -p 8000:8000 polish-llm-backend:latest
+uv run python -m pytest tests/
 ```
-
-### Kubernetes (TODO)
-```bash
-kubectl apply -f frontend/kubernetes/
-kubectl apply -f backend/kubernetes/
-```
-
-### OpenTofu (TODO)
-```bash
-tofu apply -f infra/
-```
-
-
-## Troubleshooting
-
-### Model Training
-1. **CUDA Out of Memory**: Reduce batch size
-2. **Tokenizer Errors**: Verify UTF-8 encoding
-3. **Slow Training**: Use GPU acceleration
-
-## Chat Application
-1. **WebSocket Failed**: Verify backend running
-2. **No Response**: Check backend logs
-3. **Redis Errors**: Ensure Redis is running
 
 ## License
 
@@ -189,6 +86,7 @@ MIT License
 ## Acknowledgments
 
 - Code generation and optimization supported by **Mistral AI**
+- Corpus texts courtesy of **Wolne Lektury** ([wolnelektury.pl](https://wolnelektury.pl)) and the [ArielUW/wolnelektury](https://huggingface.co/datasets/ArielUW/wolnelektury) dataset on Hugging Face
 - Special thanks for invaluable resources, code and strong support in learning:
   - Arkadiusz Słota [@Maggio333](https://github.com/Maggio333/)
   - Kacper Wikieł [@kwikiel](https://github.com/kwikiel/)

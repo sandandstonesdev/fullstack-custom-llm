@@ -1,54 +1,43 @@
-
-# Dockerfile for Polish LLM Backend API - CPU-only, Rootless-Friendly
+# Serving image for the Polish LLM API - CPU-only, rootless-friendly.
+# Build from the REPO ROOT (needs backend/, the trained artifacts,
+# and the pinned lockfile):
+#   podman build -f backend/Dockerfile -t polish-llm-api .
 FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PIP_NO_CACHE_DIR=off
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies (minimal for CPU-only)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     curl \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# uv for locked, reproducible dependency installs (same lock as dev).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 WORKDIR /app
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install only the pinned runtime dependencies from uv.lock.
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv sync --frozen --no-dev
 
-# Copy source code
-COPY tokenizer/ ./tokenizer/
-COPY dataset/ ./dataset/
-COPY model/ ./model/
-COPY train/ ./train/
-COPY data/ ./data/
-COPY configs/ ./configs/
-COPY main.py ./
-COPY api/ ./api/
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Create directory for model files
-RUN mkdir -p /app/data/processed/models/tokenizers
+# The whole backend project: /app mirrors backend/ (the project root),
+# so modules import top-level (app, configs, model, ...).
+COPY backend/ ./
 
-# Copy model files
-COPY data/processed/models/tokenizers/polish_bpe_32k.json /app/data/processed/models/tokenizers/
-COPY data/processed/models/polish_small_model.pt /app/data/processed/models/
+# Bake in the trained artifacts (small model: baking in beats PVC/object store).
+COPY data/processed/models/polish_small_model.pt ./data/processed/models/
+COPY data/processed/tokenizers/polish_bpe_4k.json ./data/processed/tokenizers/
 
-# Add non-root user for security (rootless-friendly)
+# Non-root user
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
 EXPOSE 8000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/healthz || exit 1
 
-# Default command (can be overridden in docker-compose.yml)
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
