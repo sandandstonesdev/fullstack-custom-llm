@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+build/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.astro/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+
+# Data artifacts: corpus, tokenizers, shards, checkpoints
+data/
+*.pt
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.key
+
+# OpenTofu / Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

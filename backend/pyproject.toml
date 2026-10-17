@@ -1,0 +1,43 @@
+[project]
+name = "polish-llm"
+version = "0.1.0"
+description = "Focused Polish LLM: corpus, tokenizer, training, serving"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Runtime, pinned; uv.lock is the single source of truth for installs
+    # (dev machine AND the Dockerfile build both use it).
+    "numpy==2.2.6",
+    "torch==2.14.1",
+    "tokenizers==0.23.3",
+    "fastapi==0.143.2",
+    "uvicorn==0.54.0",
+    "websockets==16.1.1",
+    "redis==8.1.0",
+    "httpx==0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "black==26.10.1",
+    "flake8==7.4.1",
+    "isort==9.0.2",
+    "mypy==2.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+# Windows (laptop, GTX 1650 Ti): PyPI serves CPU-only torch wheels there,
+# so pull the CUDA build from the PyTorch index instead. Other platforms
+# (the Linux serve container) keep the default PyPI resolution.
+torch = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'win32'" },
+]

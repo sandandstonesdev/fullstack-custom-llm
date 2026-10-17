@@ -1,0 +1,97 @@
+# Model server: deployment + service + ingress (DRAFT, replicas: 1).
+# The image is stateless: checkpoint + tokenizer are baked in, the pod
+# never writes to the model. Training does NOT run in k8s - the .pt file
+# is produced locally via `make train` and baked at image build time.
+#
+# Build: podman build -f backend/Dockerfile -t polish-llm-api:latest .
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: polish-llm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: polish-llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: polish-llm-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: VALKEY_URL
+              value: redis://valkey:6379/0
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: polish-llm
+spec:
+  selector:
+    app: api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+# TODO: ingress controller + TLS before real traffic.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: polish-llm
+  namespace: polish-llm
+spec:
+  rules:
+    - host: chat.example.com
+      http:
+        paths:
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 8000
+          - path: /healthz
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
