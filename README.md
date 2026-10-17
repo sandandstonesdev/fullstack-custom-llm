@@ -91,3 +91,4 @@ MIT License
   - Arkadiusz Słota [@Maggio333](https://github.com/Maggio333/)
   - Kacper Wikieł [@kwikiel](https://github.com/kwikiel/)
   - **Slayer AI Labs** [@slayerlabs](https://github.com/slayerlabs)
+
